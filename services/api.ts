@@ -12,6 +12,7 @@ export const api = {
       // Standard JSON request handler
       response = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
+        signal: options.signal, // Pass signal for cancellation
         credentials: 'include', // Crucial for session-based auth (cookies)
         headers: {
           'Content-Type': 'application/json',
@@ -19,6 +20,9 @@ export const api = {
         },
       });
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw error; // Request cancelled intentionally
+      }
       console.error(`API Request Network Error to ${BASE_URL}${endpoint}:`, error);
 
       // Dispatch global error event for Toast
@@ -53,15 +57,15 @@ export const api = {
     return response.json();
   },
 
-  get: async <T,>(endpoint: string) => api.request<T>(endpoint, { method: 'GET' }),
+  get: async <T,>(endpoint: string, signal?: AbortSignal) => api.request<T>(endpoint, { method: 'GET', signal }),
 
-  post: async <T,>(endpoint: string, body: any) =>
-    api.request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
+  post: async <T,>(endpoint: string, body: any, signal?: AbortSignal) =>
+    api.request<T>(endpoint, { method: 'POST', body: JSON.stringify(body), signal }),
 
-  put: async <T,>(endpoint: string, body: any) =>
-    api.request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
+  put: async <T,>(endpoint: string, body: any, signal?: AbortSignal) =>
+    api.request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body), signal }),
 
-  delete: async <T,>(endpoint: string) => api.request<T>(endpoint, { method: 'DELETE' }),
+  delete: async <T,>(endpoint: string, signal?: AbortSignal) => api.request<T>(endpoint, { method: 'DELETE', signal }),
 
   // ✅ New Upload Method
   upload: async (endpoint: string, file: File) => {

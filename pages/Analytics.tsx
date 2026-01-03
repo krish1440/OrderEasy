@@ -80,56 +80,89 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (signal: AbortSignal) => {
+    // CRITICAL: Reset all data states immediately to prevent stale data rendering
+    // and show loading spinner while fetching new data.
     setLoading(true);
+    setYearly(null);
+    setMom(null);
+    setPending(null);
+    setProducts(null);
+    setScatter(null);
+    setDelMetrics(null);
+    setDelDist(null);
+    setSchedule(null);
+    setForecast(null);
+    setRfm(null);
+    setTopCust(null);
+
     setError(null);
+
     try {
-      if (activeTab === 'revenue' && !yearly) {
+      if (activeTab === 'revenue') {
         const [yData, mData, pData, prodData, scatData] = await Promise.all([
-          api.get<YearlyRevenue>('/analytics/revenue/yearly'),
-          api.get<MoMGrowth>('/analytics/revenue/mom-growth'),
-          api.get<PendingMonthly>('/analytics/pending/monthly'),
-          api.get<ProductAnalyticsResponse>('/analytics/products/top'),
-          api.get<ScatterData[]>('/analytics/charts/scatter-revenue-qty')
+          api.get<YearlyRevenue>('/analytics/revenue/yearly', signal),
+          api.get<MoMGrowth>('/analytics/revenue/mom-growth', signal),
+          api.get<PendingMonthly>('/analytics/pending/monthly', signal),
+          api.get<ProductAnalyticsResponse>('/analytics/products/top', signal),
+          api.get<ScatterData[]>('/analytics/charts/scatter-revenue-qty', signal)
         ]);
-        setYearly(yData);
-        setMom(mData);
-        setPending(pData);
-        setProducts(prodData);
-        setScatter(scatData);
+        if (!signal.aborted) {
+          setYearly(yData);
+          setMom(mData);
+          setPending(pData);
+          setProducts(prodData);
+          setScatter(scatData);
+        }
       }
-      else if (activeTab === 'operations' && !delMetrics) {
+      else if (activeTab === 'operations') {
         const [metData, distData, schData] = await Promise.all([
-          api.get<DeliveryPerformanceMetrics>('/analytics/metrics/delivery-performance'),
-          api.get<DeliveryDistribution[]>('/analytics/charts/delivery-distribution'),
-          api.get<ExpectedScheduleData[]>('/analytics/charts/expected-delivery-schedule')
+          api.get<DeliveryPerformanceMetrics>('/analytics/metrics/delivery-performance', signal),
+          api.get<DeliveryDistribution[]>('/analytics/charts/delivery-distribution', signal),
+          api.get<ExpectedScheduleData[]>('/analytics/charts/expected-delivery-schedule', signal)
         ]);
-        setDelMetrics(metData);
-        setDelDist(distData);
-        setSchedule(schData);
+        if (!signal.aborted) {
+          setDelMetrics(metData);
+          setDelDist(distData);
+          setSchedule(schData);
+        }
       }
-      else if (activeTab === 'forecast' && !forecast) {
-        const res = await api.get<ForecastResponse>('/analytics/forecast');
-        setForecast(res);
+      else if (activeTab === 'forecast') {
+        const res = await api.get<ForecastResponse>('/analytics/forecast', signal);
+        if (!signal.aborted) {
+          setForecast(res);
+        }
       }
-      else if (activeTab === 'customers' && !rfm) {
+      else if (activeTab === 'customers') {
         const [rfmData, custData] = await Promise.all([
-          api.get<RFMResponse>('/analytics/rfm'),
-          api.get<TopCustomers>('/analytics/orders/top-customers')
+          api.get<RFMResponse>('/analytics/rfm', signal),
+          api.get<TopCustomers>('/analytics/orders/top-customers', signal)
         ]);
-        setRfm(rfmData);
-        setTopCust(custData);
+        if (!signal.aborted) {
+          setRfm(rfmData);
+          setTopCust(custData);
+        }
       }
     } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log('Request cancelled for tab change');
+        return;
+      }
       console.error(e);
-      setError(e.message || "Failed to load analytics data.");
+      if (!signal.aborted) {
+        setError(e.message || "Failed to load analytics data.");
+      }
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [activeTab]);
 
   // Helpers

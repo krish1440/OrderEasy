@@ -23,7 +23,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setToasts((prev) => [...prev, { id, message, type }]);
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 4000); // Auto dismiss after 4s
+        }, 3000); // Auto dismiss after 3s
     }, []);
 
     const removeToast = (id: number) => {
@@ -59,7 +59,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
                         <span className="font-medium text-sm">{toast.message}</span>
 
-                        <button onClick={() => removeToast(toast.id)} className="text-slate-400 hover:text-slate-600">
+                        <button type="button" onClick={() => removeToast(toast.id)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
