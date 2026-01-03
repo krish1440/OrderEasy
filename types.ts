@@ -63,6 +63,10 @@ export interface CurrentMonthMetrics {
 export interface ForecastResponse {
   r2_score: number;
   confidence_level: string;
+  historical_data: {
+    month: string;
+    revenue: number;
+  }[];
   forecast_12_months: {
     month: string;
     predicted_revenue: number;

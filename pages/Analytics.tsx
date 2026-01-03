@@ -422,17 +422,42 @@ const Analytics: React.FC = () => {
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 className="font-bold text-lg text-slate-800 mb-6">12-Month Advanced Forecast</h3>
+                <h3 className="font-bold text-lg text-slate-800 mb-6">Historical vs Forecast (12 Months)</h3>
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={forecast.forecast_12_months}>
+                    <ComposedChart data={[
+                      // Map Historical Data
+                      ...(forecast.historical_data || []).map(h => ({
+                        month: h.month,
+                        Actual: h.revenue,
+                        Predicted: null, // Don't show prediction line for history
+                        upper_bound: null,
+                        lower_bound: null
+                      })),
+                      // Connecting Point (Last Historical matches First Forecast start? Optional, but good for continuity)
+                      // Map Forecast Data
+                      ...forecast.forecast_12_months.map(f => ({
+                        month: f.month,
+                        Actual: null, // Don't show actual line for future
+                        Predicted: f.predicted_revenue,
+                        upper_bound: f.upper_bound,
+                        lower_bound: f.lower_bound
+                      }))
+                    ]}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="month" axisLine={false} tickLine={false} />
                       <YAxis axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                       <Tooltip formatter={(val: number) => `₹${val.toLocaleString()}`} />
                       <Legend verticalAlign="top" />
+
+                      {/* Confidence Interval Area */}
                       <Area type="monotone" dataKey="upper_bound" stroke="none" fill="#e9d5ff" fillOpacity={0.3} name="Confidence Interval" />
-                      <Line type="monotone" dataKey="predicted_revenue" stroke="#7c3aed" strokeWidth={3} dot={{ r: 4 }} name="Predicted" />
+
+                      {/* Actual Revenue Line (Solid Blue) */}
+                      <Line type="monotone" dataKey="Actual" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} name="Actual Revenue" connectNulls={false} />
+
+                      {/* Predicted Revenue Line (Dashed Purple) */}
+                      <Line type="monotone" dataKey="Predicted" stroke="#7c3aed" strokeWidth={3} strokeDasharray="5 5" dot={{ r: 4 }} name="AI Prediction" connectNulls={false} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
@@ -463,7 +488,7 @@ const Analytics: React.FC = () => {
                 {/* RFM Segments */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                   <h3 className="font-bold text-lg text-slate-800 mb-4">Customer Segments (RFM)</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     {Object.entries(rfm.segments).map(([key, data]) => (
                       <div key={key} className="p-4 border rounded-lg bg-slate-50 border-slate-100 text-center">
                         <h4 className="font-bold text-slate-700">{key}</h4>
@@ -472,8 +497,10 @@ const Analytics: React.FC = () => {
                       </div>
                     ))}
                   </div>
+
                 </div>
               </div>
+
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <h3 className="font-bold text-lg text-slate-800 mb-4">Customer Segmentation Details</h3>
@@ -501,7 +528,6 @@ const Analytics: React.FC = () => {
               </div>
             </div>
           )}
-
         </div>
       )}
     </div>
@@ -509,3 +535,4 @@ const Analytics: React.FC = () => {
 };
 
 export default Analytics;
+

@@ -18,24 +18,36 @@ export const api = {
           ...options.headers,
         },
       });
-    } catch (error) {
-      // Catch network errors (server down, CORS block, Mixed Content, etc.)
+    } catch (error: any) {
       console.error(`API Request Network Error to ${BASE_URL}${endpoint}:`, error);
 
+      // Dispatch global error event for Toast
+      window.dispatchEvent(new CustomEvent('api-error', {
+        detail: { message: "Network Error: Please check your connection.", type: 'error' }
+      }));
+
       // BYPASS: Throw a simple error that we can catch and ignore in the UI
-      // since the user confirmed the backend IS actually working.
       throw new Error("Network Error: Request likely succeeded, but response was blocked.");
     }
 
     if (response.status === 401) {
-      // Handle unauthorized (session expired)
-      // Removed automatic redirect to login: User requested manual control
+      // Dispatch global error event for Toast
+      window.dispatchEvent(new CustomEvent('api-error', {
+        detail: { message: "Session Expired: Please login again.", type: 'info' }
+      }));
       throw new Error('Unauthorized: Please login again.');
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Server Error ${response.status}: ${response.statusText}`);
+      const msg = errorData.detail || `Server Error ${response.status}: ${response.statusText}`;
+
+      // Dispatch global error event for Toast
+      window.dispatchEvent(new CustomEvent('api-error', {
+        detail: { message: msg, type: 'error' }
+      }));
+
+      throw new Error(msg);
     }
 
     return response.json();

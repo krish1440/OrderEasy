@@ -30,6 +30,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setToasts((prev) => prev.filter((t) => t.id !== id));
     };
 
+    // Global Error Listener from API
+    React.useEffect(() => {
+        const handleApiError = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            addToast(detail.message, detail.type || 'error');
+        };
+
+        window.addEventListener('api-error', handleApiError);
+        return () => window.removeEventListener('api-error', handleApiError);
+    }, [addToast]);
+
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
@@ -38,8 +49,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     <div
                         key={toast.id}
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border transition-all animate-fade-in-up ${toast.type === 'success' ? 'bg-white border-emerald-100 text-emerald-800' :
-                                toast.type === 'error' ? 'bg-white border-rose-100 text-rose-800' :
-                                    'bg-white border-blue-100 text-blue-800'
+                            toast.type === 'error' ? 'bg-white border-rose-100 text-rose-800' :
+                                'bg-white border-blue-100 text-blue-800'
                             }`}
                     >
                         {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
