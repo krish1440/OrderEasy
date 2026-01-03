@@ -5,6 +5,7 @@ import { Order } from '../types';
 import { Link } from 'react-router-dom';
 import { Plus, Download, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import TableSkeleton from '../components/skeletons/TableSkeleton';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -334,7 +335,7 @@ const Orders: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={9} className="p-8 text-center text-slate-500">Loading orders...</td></tr>
+                <tr><td colSpan={9} className="p-0"><TableSkeleton /></td></tr>
               ) : sortedOrders.length === 0 ? (
                 <tr><td colSpan={9} className="p-8 text-center text-slate-500">No orders found.</td></tr>
               ) : (

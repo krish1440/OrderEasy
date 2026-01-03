@@ -112,5 +112,14 @@ export const api = {
       console.error("Download Error:", error);
       throw error;
     }
+  },
+
+  exportRevenueSummary: async (year?: number) => {
+    const query = year ? `?start_year=${year}&end_year=${year}` : '';
+    await api.download(`/exports/revenue-summary${query}`, `revenue_summary_${year || 'all'}.xlsx`);
+  },
+
+  exportOrders: async () => {
+    await api.download(`/exports/orders`, `orders_export_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 };

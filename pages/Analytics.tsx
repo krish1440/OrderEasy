@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import AnalyticsSkeleton from '../components/skeletons/AnalyticsSkeleton';
 
 import {
   ForecastResponse,
@@ -310,12 +311,13 @@ const Analytics: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {/* Export Button */}
+
       </div>
 
       {loading ? (
-        <div className="h-96 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-        </div>
+        <AnalyticsSkeleton />
       ) : error ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center text-amber-800">
           <AlertCircle className="w-8 h-8 mx-auto mb-2" />

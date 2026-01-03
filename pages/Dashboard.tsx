@@ -16,6 +16,7 @@ import {
   Area
 } from 'recharts';
 import { ArrowUpRight, CheckCircle, Clock, Package, DollarSign } from 'lucide-react';
+import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 
 const StatCard = ({ title, value, subtext, icon: Icon, color }: any) => (
   <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
@@ -77,7 +78,9 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div></div>;
+
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="space-y-8">
