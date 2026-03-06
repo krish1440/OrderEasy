@@ -1,212 +1,318 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { FileDown, Calendar, Filter, AlertCircle } from 'lucide-react';
+import { FileDown, Calendar, Filter, AlertCircle, Truck, FileText, ReceiptText, ClipboardList, User } from 'lucide-react';
 
+// ─────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────
+type Format = 'excel' | 'pdf';
+
+// ─────────────────────────────────────────────
+// DUAL DOWNLOAD BUTTON
+// ─────────────────────────────────────────────
+interface DualBtnProps {
+    onExcel: () => void;
+    onPdf: () => void;
+    loading: boolean;
+}
+const DualDownload: React.FC<DualBtnProps> = ({ onExcel, onPdf, loading }) => (
+    <div className="mt-6 grid grid-cols-2 gap-3">
+        <button
+            onClick={onExcel}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+        >
+            <FileDown className="w-4 h-4" /> Excel
+        </button>
+        <button
+            onClick={onPdf}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+        >
+            <FileText className="w-4 h-4" /> PDF
+        </button>
+    </div>
+);
+
+// ─────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────
 const Exports: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Orders Filter
+    // Orders
     const [orderStatus, setOrderStatus] = useState('All');
     const [orderStart, setOrderStart] = useState('');
     const [orderEnd, setOrderEnd] = useState('');
 
-    // Revenue Filter
+    // Revenue
     const [revStartYear, setRevStartYear] = useState('');
     const [revEndYear, setRevEndYear] = useState('');
 
-    // Deliveries Filter
+    // Deliveries
     const [delStart, setDelStart] = useState('');
     const [delEnd, setDelEnd] = useState('');
 
-    const handleExportOrders = async () => {
+    // Customer Statement
+    const [customerName, setCustomerName] = useState('');
+    const [customerList, setCustomerList] = useState<string[]>([]);
+
+    // GST Report
+    const [gstStart, setGstStart] = useState('');
+    const [gstEnd, setGstEnd] = useState('');
+
+    // Load customer list on mount
+    useEffect(() => {
+        api.get('/exports/customers/list')
+            .then((res: any) => setCustomerList(res.customers || []))
+            .catch(() => { });
+    }, []);
+
+    // ── Helpers ──────────────────────────────────────────────────
+    const download = async (url: string, filename: string) => {
         setLoading(true);
         setError('');
         try {
-            const params = new URLSearchParams();
-            if (orderStatus !== 'All') params.append('status', orderStatus);
-            if (orderStart) params.append('start_date', orderStart);
-            if (orderEnd) params.append('end_date', orderEnd);
-
-            await api.download(`/exports/orders?${params.toString()}`, 'orders_export.xlsx');
+            await api.download(url, filename);
         } catch (e: any) {
-            console.error(e);
-            setError(e.message || "Failed to export orders");
+            setError(e.message || 'Export failed');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleExportRevenue = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const params = new URLSearchParams();
-            if (revStartYear) params.append('start_year', revStartYear);
-            if (revEndYear) params.append('end_year', revEndYear);
-
-            await api.download(`/exports/revenue-summary?${params.toString()}`, 'revenue_summary.xlsx');
-        } catch (e: any) {
-            console.error(e);
-            setError(e.message || "Failed to export revenue report");
-        } finally {
-            setLoading(false);
-        }
+    // ── Order Export ──────────────────────────────────────────────
+    const orderParams = () => {
+        const p = new URLSearchParams();
+        if (orderStatus !== 'All') p.append('status', orderStatus);
+        if (orderStart) p.append('start_date', orderStart);
+        if (orderEnd) p.append('end_date', orderEnd);
+        return p.toString();
     };
 
-    const handleExportDeliveries = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const params = new URLSearchParams();
-            if (delStart) params.append('start_date', delStart);
-            if (delEnd) params.append('end_date', delEnd);
-
-            await api.download(`/exports/deliveries-zip?${params.toString()}`, 'all_deliveries.zip');
-        } catch (e: any) {
-            console.error(e);
-            setError(e.message || "Failed to export deliveries");
-        } finally {
-            setLoading(false);
-        }
+    // ── Revenue Export ────────────────────────────────────────────
+    const revParams = () => {
+        const p = new URLSearchParams();
+        if (revStartYear) p.append('start_year', revStartYear);
+        if (revEndYear) p.append('end_year', revEndYear);
+        return p.toString();
     };
+
+    // ── Delivery Export ───────────────────────────────────────────
+    const delParams = () => {
+        const p = new URLSearchParams();
+        if (delStart) p.append('start_date', delStart);
+        if (delEnd) p.append('end_date', delEnd);
+        return p.toString();
+    };
+
+    // ── GST Params ────────────────────────────────────────────────
+    const gstParams = () => {
+        const p = new URLSearchParams();
+        if (gstStart) p.append('start_date', gstStart);
+        if (gstEnd) p.append('end_date', gstEnd);
+        return p.toString();
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // CARD WRAPPER
+    // ─────────────────────────────────────────────────────────────
+    const Card: React.FC<{
+        icon: React.ElementType;
+        iconBg: string;
+        title: string;
+        sub: string;
+        badge?: string;
+        children: React.ReactNode;
+    }> = ({ icon: Icon, iconBg, title, sub, badge, children }) => (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full">
+            <div className="flex items-center gap-3 mb-4">
+                <div className={`p-3 rounded-lg flex-shrink-0 ${iconBg}`}>
+                    <Icon className="w-6 h-6" />
+                </div>
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-slate-800">{title}</h3>
+                        {badge && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                                {badge}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-xs text-slate-500">{sub}</p>
+                </div>
+            </div>
+            <div className="space-y-3 flex-1">{children}</div>
+        </div>
+    );
+
+    const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+        <label className="text-xs font-semibold text-slate-500 mb-1 block">{children}</label>
+    );
+
+    const DateInput: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
+        <div>
+            <Label>{label}</Label>
+            <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                value={value} onChange={e => onChange(e.target.value)} />
+        </div>
+    );
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
+        <div className="space-y-8 max-w-7xl mx-auto">
+            {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">Data Exports</h1>
-                <p className="text-slate-500">Download your data for offline analysis and reporting.</p>
+                <h1 className="text-3xl font-bold text-slate-900">Data Exports</h1>
+                <p className="text-slate-500 mt-1">Download your business data as <span className="font-semibold text-emerald-600">Excel</span> or a branded <span className="font-semibold text-indigo-600">PDF</span>.</p>
             </div>
 
             {error && (
-                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-4 rounded-xl flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 flex-shrink-0" />
                     <p className="text-sm font-medium">{error}</p>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ── Section 1: Core Exports ──────────────────────────────── */}
+            <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Core Exports</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                {/* Orders Export */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                            <FileDown className="w-6 h-6" />
-                        </div>
+                    {/* Orders */}
+                    <Card icon={ClipboardList} iconBg="bg-blue-50 text-blue-600" title="Orders Report" sub="Full order list with amounts & status.">
                         <div>
-                            <h3 className="font-bold text-slate-800">Export Orders</h3>
-                            <p className="text-xs text-slate-500">Full order list with details.</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3 flex-1">
-                        <div>
-                            <label className="text-xs font-semibold text-slate-500 mb-1 block">Status</label>
-                            <select
-                                value={orderStatus}
-                                onChange={e => setOrderStatus(e.target.value)}
-                                className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                            >
+                            <Label>Status</Label>
+                            <select value={orderStatus} onChange={e => setOrderStatus(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg text-sm">
                                 <option value="All">All Statuses</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Pending">Pending</option>
                             </select>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">From</label>
-                                <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                    value={orderStart} onChange={e => setOrderStart(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">To</label>
-                                <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                    value={orderEnd} onChange={e => setOrderEnd(e.target.value)} />
-                            </div>
+                            <DateInput label="From" value={orderStart} onChange={setOrderStart} />
+                            <DateInput label="To" value={orderEnd} onChange={setOrderEnd} />
                         </div>
-                    </div>
+                        <DualDownload
+                            loading={loading}
+                            onExcel={() => download(`/exports/orders?${orderParams()}`, 'orders.xlsx')}
+                            onPdf={() => download(`/exports/orders/pdf?${orderParams()}`, 'orders_report.pdf')}
+                        />
+                    </Card>
 
-                    <button
-                        onClick={handleExportOrders}
-                        disabled={loading}
-                        className="mt-6 w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <FileDown className="w-4 h-4" /> Download Excel
-                    </button>
-                </div>
-
-                {/* Revenue Export */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-brand-50 text-brand-600 rounded-lg">
-                            <Calendar className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-800">Revenue Reports</h3>
-                            <p className="text-xs text-slate-500">Monthly and yearly summaries.</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3 flex-1">
+                    {/* Revenue */}
+                    <Card icon={Calendar} iconBg="bg-purple-50 text-purple-600" title="Revenue Report" sub="Monthly and yearly revenue summaries.">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">Start Year</label>
+                                <Label>Start Year</Label>
                                 <input type="number" placeholder="2024" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
                                     value={revStartYear} onChange={e => setRevStartYear(e.target.value)} />
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">End Year</label>
+                                <Label>End Year</Label>
                                 <input type="number" placeholder="2025" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
                                     value={revEndYear} onChange={e => setRevEndYear(e.target.value)} />
                             </div>
                         </div>
-                    </div>
+                        <DualDownload
+                            loading={loading}
+                            onExcel={() => download(`/exports/revenue-summary?${revParams()}`, 'revenue_summary.xlsx')}
+                            onPdf={() => download(`/exports/revenue-summary/pdf?${revParams()}`, 'revenue_summary.pdf')}
+                        />
+                    </Card>
 
-                    <button
-                        onClick={handleExportRevenue}
-                        disabled={loading}
-                        className="mt-6 w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <FileDown className="w-4 h-4" /> Download Report
-                    </button>
-                </div>
-
-                {/* Deliveries Export */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                            <Filter className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-800">Bulk Deliveries</h3>
-                            <p className="text-xs text-slate-500">ZIP archive of all deliveries.</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3 flex-1">
+                    {/* Deliveries */}
+                    <Card icon={Truck} iconBg="bg-emerald-50 text-emerald-600" title="Deliveries Report" sub="All delivery records by date range.">
                         <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">From</label>
-                                <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                    value={delStart} onChange={e => setDelStart(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 mb-1 block">To</label>
-                                <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                    value={delEnd} onChange={e => setDelEnd(e.target.value)} />
-                            </div>
+                            <DateInput label="From" value={delStart} onChange={setDelStart} />
+                            <DateInput label="To" value={delEnd} onChange={setDelEnd} />
                         </div>
-                    </div>
-
-                    <button
-                        onClick={handleExportDeliveries}
-                        disabled={loading}
-                        className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <FileDown className="w-4 h-4" /> Download ZIP
-                    </button>
+                        <div className="mt-6 grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => download(`/exports/deliveries-zip?${delParams()}`, 'deliveries.zip')}
+                                disabled={loading}
+                                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+                            >
+                                <FileDown className="w-4 h-4" /> ZIP
+                            </button>
+                            <button
+                                onClick={() => download(`/exports/deliveries/pdf?${delParams()}`, 'deliveries_report.pdf')}
+                                disabled={loading}
+                                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+                            >
+                                <FileText className="w-4 h-4" /> PDF
+                            </button>
+                        </div>
+                    </Card>
                 </div>
+            </div>
 
+            {/* ── Section 2: Advanced Exports ─────────────────────────── */}
+            <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Advanced Exports</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    {/* Customer Statement */}
+                    <Card icon={User} iconBg="bg-rose-50 text-rose-600" title="Customer Statement" sub="Complete account statement for one client." badge="New">
+                        <div>
+                            <Label>Select Customer</Label>
+                            {customerList.length > 0 ? (
+                                <select value={customerName} onChange={e => setCustomerName(e.target.value)}
+                                    className="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                                    <option value="">— Choose a customer —</option>
+                                    {customerList.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            ) : (
+                                <input type="text" placeholder="Customer name" className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                    value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-400">Includes all orders, payments, and outstanding balance.</p>
+                        <DualDownload
+                            loading={loading}
+                            onExcel={() => {
+                                if (!customerName) { setError('Please select a customer.'); return; }
+                                download(`/exports/customer-statement?customer=${encodeURIComponent(customerName)}`, `statement_${customerName}.xlsx`);
+                            }}
+                            onPdf={() => {
+                                if (!customerName) { setError('Please select a customer.'); return; }
+                                download(`/exports/customer-statement/pdf?customer=${encodeURIComponent(customerName)}`, `statement_${customerName}.pdf`);
+                            }}
+                        />
+                    </Card>
+
+                    {/* GST Report */}
+                    <Card icon={ReceiptText} iconBg="bg-amber-50 text-amber-600" title="GST Tax Report" sub="Tax-ready slab-wise revenue breakdown." badge="New">
+                        <div className="grid grid-cols-2 gap-2">
+                            <DateInput label="From" value={gstStart} onChange={setGstStart} />
+                            <DateInput label="To" value={gstEnd} onChange={setGstEnd} />
+                        </div>
+                        <p className="text-xs text-slate-400">Groups orders by GST % slab. Excel has 2 sheets: All Orders + Slab Summary.</p>
+                        <DualDownload
+                            loading={loading}
+                            onExcel={() => download(`/exports/gst-report?${gstParams()}`, 'gst_report.xlsx')}
+                            onPdf={() => download(`/exports/gst-report/pdf?${gstParams()}`, 'gst_report.pdf')}
+                        />
+                    </Card>
+
+                    {/* Pending Orders PDF */}
+                    <Card icon={AlertCircle} iconBg="bg-orange-50 text-orange-600" title="Pending Orders Report" sub="Urgency-sorted snapshot for the warehouse." badge="New">
+                        <p className="text-sm text-slate-600">
+                            Lists all currently <span className="font-semibold text-orange-600">Pending</span> orders sorted by closest due date first. Overdue orders are flagged.
+                        </p>
+                        <p className="text-xs text-slate-400 mt-2">Print it every morning for the warehouse team.</p>
+                        <div className="mt-6">
+                            <button
+                                onClick={() => download('/exports/pending-orders/pdf', 'pending_orders_urgent.pdf')}
+                                disabled={loading}
+                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+                            >
+                                <FileText className="w-4 h-4" /> Download PDF
+                            </button>
+                        </div>
+                    </Card>
+                </div>
             </div>
         </div>
     );
