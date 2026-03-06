@@ -1,7 +1,7 @@
 import React, { useRef, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ArrowRight, BarChart2, Truck, Database, ShieldCheck, Zap, PieChart, Check, X, Minus } from 'lucide-react';
+import { ArrowRight, BarChart2, Truck, Database, ShieldCheck, Zap, PieChart, Check, X, Minus, Mail, Send } from 'lucide-react';
 
 const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -93,6 +93,102 @@ const ParallaxSection = ({ children, offset = 50 }: { children: React.ReactNode,
         <motion.div ref={ref} style={{ y, opacity }}>
             {children}
         </motion.div>
+    );
+};
+
+// --- Contact Section Component (Web3Forms) ---
+const ContactSection = () => {
+    const [status, setStatus] = React.useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [message, setMessage] = React.useState('');
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setStatus('submitting');
+        const formData = new FormData(e.currentTarget);
+        formData.append("access_key", "12d44591-0dc6-43fe-afd2-278e097fe923");
+
+        try {
+            const res = await fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStatus('success');
+                setMessage("Success! Your message has been sent.");
+                (e.target as HTMLFormElement).reset();
+            } else {
+                setStatus('error');
+                setMessage(data.message || "Something went wrong.");
+            }
+        } catch (err) {
+            setStatus('error');
+            setMessage("Failed to send message. Please try again later.");
+        }
+
+        // Reset status after a few seconds
+        setTimeout(() => setStatus('idle'), 5000);
+    };
+
+    return (
+        <section id="contact" className="py-24 relative z-10 overflow-hidden">
+            <ParallaxSection offset={20}>
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+                    {/* Background glow */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                    <div className="text-center mb-12 relative z-10">
+                        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-4 drop-shadow-lg">Get in Touch</h2>
+                        <div className="h-1 w-20 bg-gradient-to-r from-brand-500 to-purple-500 mx-auto rounded-full mb-6"></div>
+                        <p className="text-slate-300 text-lg">Have questions or need help? We'd love to hear from you.</p>
+                        <a href="mailto:krishchaudhary144@gmail.com" className="inline-flex items-center gap-2 mt-6 text-brand-300 hover:text-white transition-colors font-medium bg-brand-500/20 px-5 py-2.5 rounded-full border border-brand-500/30 hover:bg-brand-500/30 hover:scale-105 backdrop-blur-sm">
+                            <Mail className="w-5 h-5" /> krishchaudhary144@gmail.com
+                        </a>
+                    </div>
+
+                    <div className="relative z-10 border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-2xl">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">Your Name</label>
+                                    <input type="text" name="name" id="name" required className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all placeholder:text-slate-500" placeholder="Your Name" />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                                    <input type="email" name="email" id="email" required className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all placeholder:text-slate-500" placeholder="user@email.com" />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-2">Message</label>
+                                <textarea name="message" id="message" rows={5} required className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all placeholder:text-slate-500 resize-none" placeholder="How can we help you?"></textarea>
+                            </div>
+
+                            {status !== 'idle' && status !== 'submitting' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`p-4 rounded-xl text-sm font-medium border ${status === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}
+                                >
+                                    {message}
+                                </motion.div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={status === 'submitting'}
+                                className="w-full py-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] disabled:opacity-70 disabled:cursor-not-allowed group"
+                            >
+                                {status === 'submitting' ? (
+                                    <span className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Sending...</span>
+                                ) : (
+                                    <span className="flex items-center gap-2">Send Message <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></span>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </ParallaxSection>
+        </section>
     );
 };
 
@@ -195,8 +291,14 @@ const Home: React.FC = () => {
                                     <span className="relative">Get Started Now</span>
                                     <ArrowRight size={20} className="relative group-hover:translate-x-1 transition-transform" />
                                 </button>
-                                <button className="px-8 py-4 bg-slate-800/80 hover:bg-slate-700/80 text-white rounded-full font-semibold text-lg border border-slate-700 backdrop-blur-sm transition-all hover:scale-105">
-                                    View Documentation
+                                <button
+                                    onClick={() => {
+                                        const el = document.getElementById('contact');
+                                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="px-8 py-4 bg-slate-800/80 hover:bg-slate-700/80 text-white rounded-full font-semibold text-lg border border-slate-700 backdrop-blur-sm transition-all hover:scale-105"
+                                >
+                                    Contact Us
                                 </button>
                             </motion.div>
                         </motion.div>
@@ -308,6 +410,9 @@ const Home: React.FC = () => {
                     </div>
                 </ParallaxSection>
             </section>
+
+            {/* Contact Section */}
+            <ContactSection />
 
             {/* Footer */}
             <footer className="py-12 border-t border-white/5 bg-[#05050A]/80 backdrop-blur-lg relative z-10">
