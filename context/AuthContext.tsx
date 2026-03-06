@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   checkSession: () => Promise<void>;
+  updateUser: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +36,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(userData);
   };
 
+  const updateUser = (data: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...data });
+    }
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout', {});
@@ -46,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkSession }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, checkSession, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

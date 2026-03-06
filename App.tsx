@@ -13,6 +13,8 @@ import Login from './pages/Login';
 import Settings from './pages/Settings';
 import Exports from './pages/Exports';
 import Admin from './pages/Admin';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // ... (previous imports)
 
@@ -45,6 +47,8 @@ const AppRoutes = () => {
       <Route path="/" element={<Home />} />
 
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Protected Dashboard */}
       <Route path="/dashboard" element={

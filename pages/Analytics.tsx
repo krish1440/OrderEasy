@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import AnalyticsSkeleton from '../components/skeletons/AnalyticsSkeleton';
+import { CustomerSegmentationDetails } from '../components/CustomerSegmentationDetails';
 
 import {
   ForecastResponse,
@@ -537,30 +538,7 @@ const Analytics: React.FC = () => {
               </div>
 
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 className="font-bold text-lg text-slate-800 mb-4">Customer Segmentation Details</h3>
-                <div className="divide-y divide-slate-100">
-                  {Object.entries(rfm.segments).map(([key, data]) => (
-                    <div key={key} className="py-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-brand-500"></div>
-                        <h4 className="font-semibold text-slate-800">{key}</h4>
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">{data.count} Customers</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {data.customers.slice(0, 15).map((cust, i) => (
-                          <span key={i} className="text-xs px-2 py-1 bg-white border border-slate-200 rounded text-slate-600">
-                            {cust}
-                          </span>
-                        ))}
-                        {data.customers.length > 15 && (
-                          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-500 rounded">+{data.customers.length - 15} more</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CustomerSegmentationDetails segments={rfm.segments} />
             </div>
           )}
         </div>

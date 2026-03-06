@@ -4,6 +4,8 @@ import { api } from '../services/api';
 import { Order, Delivery } from '../types';
 import { ArrowLeft, Trash2, Truck, Plus, Save, Download, FileText, Upload, Calendar, DollarSign, Package, Edit2, X, CheckCircle, AlertCircle } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import { DynamicFieldsInput, CustomField } from '../components/DynamicFieldsInput';
+import OrderDetailSkeleton from '../components/skeletons/OrderDetailSkeleton';
 
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +22,7 @@ const OrderDetail: React.FC = () => {
   // Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
+  const [editCustomFields, setEditCustomFields] = useState<CustomField[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Add Delivery State
@@ -31,6 +34,7 @@ const OrderDetail: React.FC = () => {
     total_amount_received: 0,
     delivery_date: new Date().toISOString().split('T')[0]
   });
+  const [deliveryCustomFields, setDeliveryCustomFields] = useState<CustomField[]>([]);
 
   // Confirm Modal State
   const [confirmModal, setConfirmModal] = useState<{
@@ -120,6 +124,15 @@ const OrderDetail: React.FC = () => {
         advance_payment: order.advance_payment,
         url: order.url
       });
+
+      const initialCustomFields: CustomField[] = [];
+      if (order.custom_data) {
+        Object.entries(order.custom_data).forEach(([key, value]) => {
+          initialCustomFields.push({ key, value });
+        });
+      }
+      setEditCustomFields(initialCustomFields);
+
       setIsEditModalOpen(true);
     }
   };
@@ -128,12 +141,20 @@ const OrderDetail: React.FC = () => {
     e.preventDefault();
     setIsUpdating(true);
     try {
+      const customDataPayload: Record<string, string> = {};
+      editCustomFields.forEach(field => {
+        if (field.key.trim() && field.value.trim()) {
+          customDataPayload[field.key.trim()] = field.value.trim();
+        }
+      });
+
       await api.put(`/orders/${id}`, {
         ...editFormData,
         quantity: Number(editFormData.quantity),
         price: Number(editFormData.price),
         gst: Number(editFormData.gst),
-        advance_payment: Number(editFormData.advance_payment)
+        advance_payment: Number(editFormData.advance_payment),
+        custom_data: customDataPayload
       });
       setIsEditModalOpen(false);
       fetchData();
@@ -163,10 +184,18 @@ const OrderDetail: React.FC = () => {
         };
       }
 
+      const customDataPayload: Record<string, string> = {};
+      deliveryCustomFields.forEach(field => {
+        if (field.key.trim() && field.value.trim()) {
+          customDataPayload[field.key.trim()] = field.value.trim();
+        }
+      });
+
       await api.post('/deliveries/', {
         order_id: Number(id),
         ...newDelivery,
-        ...fileData
+        ...fileData,
+        custom_data: customDataPayload
       });
 
       setShowAddDelivery(false);
@@ -177,6 +206,7 @@ const OrderDetail: React.FC = () => {
         total_amount_received: 0,
         delivery_date: new Date().toISOString().split('T')[0]
       });
+      setDeliveryCustomFields([]);
       showNotification("Delivery added successfully!");
     } catch (error: any) {
       showNotification(error.message, 'error');
@@ -295,7 +325,7 @@ const OrderDetail: React.FC = () => {
     }
   };
 
-  if (loading || !order) return <div className="p-8 text-center">Loading details...</div>;
+  if (loading || !order) return <OrderDetailSkeleton />;
 
   const remainingQty = order.quantity - order.delivered_quantity;
 
@@ -426,6 +456,21 @@ const OrderDetail: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Custom Data View Section */}
+        {order.custom_data && Object.keys(order.custom_data).length > 0 && (
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <h3 className="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider">Additional Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(order.custom_data).map(([key, value]) => (
+                <div key={key} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 uppercase">{key}</p>
+                  <p className="font-medium text-slate-900 mt-1">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Deliveries Section */}
@@ -479,7 +524,12 @@ const OrderDetail: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
+
+              <div className="border-t border-brand-100 pt-3 mt-1">
+                <DynamicFieldsInput fields={deliveryCustomFields} onChange={setDeliveryCustomFields} />
+              </div>
+
+              <div className="flex justify-end gap-2 pr-4">
                 <button type="button" onClick={() => setShowAddDelivery(false)} className="text-slate-500 px-4 py-2 hover:bg-slate-100 rounded-md text-sm">Cancel</button>
                 <button type="submit" disabled={uploading} className="bg-brand-600 text-white px-4 py-2 rounded-md hover:bg-brand-700 flex items-center gap-2 text-sm font-medium disabled:opacity-50">
                   <Save className="w-4 h-4" />
@@ -499,6 +549,7 @@ const OrderDetail: React.FC = () => {
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Date</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Qty Delivered</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Amount Received</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase min-w-[150px]">Details</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Proof</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase text-right">Action</th>
               </tr>
@@ -513,6 +564,20 @@ const OrderDetail: React.FC = () => {
                     <td className="px-6 py-3 text-sm text-slate-900">{d.delivery_date}</td>
                     <td className="px-6 py-3 text-sm text-slate-900">{d.delivery_quantity}</td>
                     <td className="px-6 py-3 text-sm text-slate-900">₹{d.total_amount_received.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-sm text-slate-900">
+                      {d.custom_data && Object.keys(d.custom_data).length > 0 ? (
+                        <div className="max-h-24 overflow-y-auto pr-2 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                          {Object.entries(d.custom_data).map(([key, val]) => (
+                            <div key={key} className="flex flex-col bg-slate-50 rounded px-2 py-1 border border-slate-100">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-tight">{key}</span>
+                              <span className="text-xs font-medium text-slate-700 leading-tight mt-0.5">{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs px-2">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-3 text-sm">
                       {d.url ? (
                         <button
@@ -615,6 +680,11 @@ const OrderDetail: React.FC = () => {
                   <label className="text-sm font-medium text-slate-700">Advance Payment (₹)</label>
                   <input required type="number" className="w-full border border-slate-200 p-2 rounded-lg"
                     value={editFormData.advance_payment} onChange={e => setEditFormData({ ...editFormData, advance_payment: e.target.value })} />
+                </div>
+
+                {/* Dynamic Fields */}
+                <div className="md:col-span-2 pt-4 border-t border-slate-100 mt-4">
+                  <DynamicFieldsInput fields={editCustomFields} onChange={setEditCustomFields} />
                 </div>
               </div>
 

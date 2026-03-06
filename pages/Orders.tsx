@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Download, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import TableSkeleton from '../components/skeletons/TableSkeleton';
+import { DynamicFieldsInput, CustomField } from '../components/DynamicFieldsInput';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -42,6 +43,7 @@ const Orders: React.FC = () => {
     description: '',
     url: ''
   });
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
 
   const fetchOrders = async () => {
     try {
@@ -73,12 +75,20 @@ const Orders: React.FC = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const customDataPayload: Record<string, string> = {};
+      customFields.forEach(field => {
+        if (field.key.trim() && field.value.trim()) {
+          customDataPayload[field.key.trim()] = field.value.trim();
+        }
+      });
+
       await api.post('/orders/', {
         ...formData,
         quantity: Number(formData.quantity),
         price: Number(formData.price),
         gst: Number(formData.gst),
-        advance_payment: Number(formData.advance_payment)
+        advance_payment: Number(formData.advance_payment),
+        custom_data: customDataPayload
       });
       setIsModalOpen(false);
       fetchOrders();
@@ -95,6 +105,7 @@ const Orders: React.FC = () => {
         description: '',
         url: ''
       });
+      setCustomFields([]);
     } catch (error: any) {
       if (error.message && error.message.includes("Network Error")) {
         // Bypass: Assume success if backend is working but frontend is glitching
@@ -119,6 +130,7 @@ const Orders: React.FC = () => {
           description: '',
           url: ''
         });
+        setCustomFields([]);
       } else {
         showAlert('Error Creating Order', error.message);
       }
@@ -427,6 +439,10 @@ const Orders: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Advance Payment</label>
                 <input required type="number" className="w-full border p-2 rounded-lg" value={formData.advance_payment} onChange={e => setFormData({ ...formData, advance_payment: Number(e.target.value) })} />
+              </div>
+
+              <div className="md:col-span-2 pt-2 border-t border-slate-100 mt-2">
+                <DynamicFieldsInput fields={customFields} onChange={setCustomFields} />
               </div>
 
               <div className="md:col-span-2 pt-4 flex gap-4">

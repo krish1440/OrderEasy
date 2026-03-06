@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { TrendingUp, ArrowRight, Lock, User, Building2, AlertCircle, Mail, KeyRound, Home as HomeIcon } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -245,7 +245,15 @@ const Login: React.FC = () => {
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
                 />
               </div>
-              {!isLogin && <p className="text-xs text-slate-400 mt-1">Must contain 1 letter, 1 number, 1 special char.</p>}
+              {!isLogin ? (
+                <p className="text-xs text-slate-400 mt-1">Must contain 1 letter, 1 number, 1 special char.</p>
+              ) : (
+                <div className="text-right mt-1.5">
+                  <Link to="/forgot-password" className="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+              )}
             </div>
 
             <button

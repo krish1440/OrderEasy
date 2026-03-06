@@ -74,27 +74,33 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 px-4 py-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold">
-              {user?.username.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              {/* 1. Make this clickable for Settings */}
-              <Link to="/settings" className="block hover:underline">
-                <p className="text-sm font-medium text-slate-900 truncate">{user?.username}</p>
-                <p className="text-xs text-slate-500 truncate">{user?.organization}</p>
-              </Link>
-            </div>
+        <div className="mt-auto p-4 border-t border-gray-100">
+          <div className="flex items-center justify-between px-2 mb-4">
+            <Link to="/settings" className="flex items-center gap-3 group overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-100 to-indigo-50 text-brand-700 flex items-center justify-center text-lg font-extrabold shadow-sm border border-brand-200/50 overflow-hidden flex-shrink-0 transition-transform group-hover:scale-105">
+                {user?.logo_url ? (
+                  <img src={user.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  user?.username.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 pr-2">
+                <p className="text-sm font-bold text-slate-900 truncate group-hover:text-brand-600 transition-colors">{user?.organization}</p>
+                <p className="text-xs text-slate-500 truncate font-medium">@{user?.username}</p>
+              </div>
+            </Link>
 
-            {/* 2. Optional direct settings icon */}
-            <Link to="/settings" className="text-slate-400 hover:text-brand-600">
-              <Settings className="w-4 h-4" />
+            <Link
+              to="/settings"
+              className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors flex-shrink-0"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
             </Link>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-rose-500 bg-rose-50/50 hover:bg-rose-50 hover:text-rose-600 border border-transparent hover:border-rose-100 rounded-xl transition-all"
           >
             <LogOut className="w-4 h-4" />
             Sign Out

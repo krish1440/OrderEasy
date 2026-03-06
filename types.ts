@@ -4,6 +4,7 @@ export interface User {
   organization: string;
   is_admin: boolean;
   email?: string;
+  logo_url?: string;
 }
 
 // Orders
@@ -26,6 +27,7 @@ export interface Order {
   delivered_quantity: number;
   url?: string;
   created_by?: string;
+  custom_data?: Record<string, string>;
 }
 
 // Deliveries
@@ -41,6 +43,7 @@ export interface Delivery {
   file_name?: string;
   upload_date?: string;
   resource_type?: string;
+  custom_data?: Record<string, string>;
 }
 
 // Analytics - Dashboard Summary
