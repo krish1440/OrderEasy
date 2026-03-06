@@ -154,7 +154,32 @@ export interface ProductAnalyticsResponse {
   products: ProductStat[];
 }
 
+export interface ChurnData {
+  month: string;
+  new: number;
+  returning: number;
+}
+
+export interface AOVData {
+  month: string;
+  aov: number;
+  revenue: number;
+  orders: number;
+}
+
 // Analytics - Delivery Performance
+export interface DeliveryFragmentationData {
+  name: string;
+  value: number;
+  [key: string]: any;
+}
+
+export interface RevenueHostageData {
+  month: string;
+  unpaid_units: number;
+  held_revenue: number;
+}
+
 export interface DeliveryPerformanceMetrics {
   total_orders: number;
   total_deliveries: number;

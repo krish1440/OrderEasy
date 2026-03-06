@@ -11,12 +11,16 @@ import {
   MoMGrowth,
   PendingMonthly,
   TopCustomers,
+  ChurnData,
+  AOVData,
   ProductAnalyticsResponse,
   DeliveryPerformanceMetrics,
   DeliveryDistribution,
   ScatterData,
   HeatmapData,
-  ExpectedScheduleData
+  ExpectedScheduleData,
+  DeliveryFragmentationData,
+  RevenueHostageData
 } from '../types';
 import {
   LineChart,
@@ -32,6 +36,9 @@ import {
   ComposedChart,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   ScatterChart,
   Scatter,
   ZAxis
@@ -51,7 +58,6 @@ import {
   Truck,
   Calendar as CalendarIcon,
   Box,
-  PieChart,
   Search,
   ChevronLeft,
   ChevronRight
@@ -71,11 +77,15 @@ const Analytics: React.FC = () => {
   const [pending, setPending] = useState<PendingMonthly | null>(null);
   const [products, setProducts] = useState<ProductAnalyticsResponse | null>(null);
   const [scatter, setScatter] = useState<ScatterData[] | null>(null);
+  const [churn, setChurn] = useState<ChurnData[] | null>(null);
+  const [aov, setAov] = useState<AOVData[] | null>(null);
 
   // Operations State
   const [delMetrics, setDelMetrics] = useState<DeliveryPerformanceMetrics | null>(null);
   const [delDist, setDelDist] = useState<DeliveryDistribution[] | null>(null);
   const [schedule, setSchedule] = useState<ExpectedScheduleData[] | null>(null);
+  const [fragmentation, setFragmentation] = useState<DeliveryFragmentationData[] | null>(null);
+  const [hostage, setHostage] = useState<RevenueHostageData[] | null>(null);
 
   // Forecast State
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);
@@ -102,9 +112,13 @@ const Analytics: React.FC = () => {
     setPending(null);
     setProducts(null);
     setScatter(null);
+    setChurn(null);
+    setAov(null);
     setDelMetrics(null);
     setDelDist(null);
     setSchedule(null);
+    setFragmentation(null);
+    setHostage(null);
     setForecast(null);
     setRfm(null);
     setTopCust(null);
@@ -113,12 +127,14 @@ const Analytics: React.FC = () => {
 
     try {
       if (activeTab === 'revenue') {
-        const [yData, mData, pData, prodData, scatData] = await Promise.all([
+        const [yData, mData, pData, prodData, scatData, churnData, aovData] = await Promise.all([
           api.get<YearlyRevenue>('/analytics/revenue/yearly', signal),
           api.get<MoMGrowth>('/analytics/revenue/mom-growth', signal),
           api.get<PendingMonthly>('/analytics/pending/monthly', signal),
           api.get<ProductAnalyticsResponse>('/analytics/products/top', signal),
-          api.get<ScatterData[]>('/analytics/charts/scatter-revenue-qty', signal)
+          api.get<ScatterData[]>('/analytics/charts/scatter-revenue-qty', signal),
+          api.get<ChurnData[]>('/analytics/churn-retention', signal),
+          api.get<AOVData[]>('/analytics/aov-tracker', signal)
         ]);
         if (!signal.aborted) {
           setYearly(yData);
@@ -126,18 +142,24 @@ const Analytics: React.FC = () => {
           setPending(pData);
           setProducts(prodData);
           setScatter(scatData);
+          setChurn(churnData);
+          setAov(aovData);
         }
       }
       else if (activeTab === 'operations') {
-        const [metData, distData, schData] = await Promise.all([
+        const [metData, distData, schData, fragData, hostData] = await Promise.all([
           api.get<DeliveryPerformanceMetrics>('/analytics/metrics/delivery-performance', signal),
           api.get<DeliveryDistribution[]>('/analytics/charts/delivery-distribution', signal),
-          api.get<ExpectedScheduleData[]>('/analytics/charts/expected-delivery-schedule', signal)
+          api.get<ExpectedScheduleData[]>('/analytics/charts/expected-delivery-schedule', signal),
+          api.get<DeliveryFragmentationData[]>('/analytics/delivery-fragmentation', signal),
+          api.get<RevenueHostageData[]>('/analytics/revenue-held-hostage', signal)
         ]);
         if (!signal.aborted) {
           setDelMetrics(metData);
           setDelDist(distData);
           setSchedule(schData);
+          setFragmentation(fragData);
+          setHostage(hostData);
         }
       }
       else if (activeTab === 'forecast') {
@@ -438,6 +460,87 @@ const Analytics: React.FC = () => {
                 </div>
               </div>
 
+              {/* Charts Row 2 - Churn/Retention & AOV Tracker */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Churn vs Retention */}
+                {churn && churn.length > 0 && (
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-indigo-500" /> Retention Trend
+                      </h3>
+                      <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">New vs Returning</span>
+                    </div>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={churn} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="colorReturning" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                          <Tooltip
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          />
+                          <Legend verticalAlign="top" height={36} iconType="circle" />
+                          <Area type="monotone" dataKey="returning" name="Returning Customers" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorReturning)" />
+                          <Area type="monotone" dataKey="new" name="New Customers" stroke="#3b82f6" fillOpacity={1} fill="url(#colorNew)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Average Order Value (AOV) Tracker */}
+                {aov && aov.length > 0 && (
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-emerald-500" /> Average Order Value (AOV)
+                    </h3>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={aov} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={formatYAxis}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip
+                            formatter={(val: number, name: string) => {
+                              if (name === 'aov') return `₹${val.toLocaleString()}`;
+                              return val;
+                            }}
+                            labelStyle={{ color: '#1e293b', fontWeight: 'bold' }}
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          />
+                          <Legend verticalAlign="top" height={36} iconType="circle" />
+                          <Line
+                            type="monotone"
+                            dataKey="aov"
+                            name="Average Order Value"
+                            stroke="#10b981"
+                            strokeWidth={3}
+                            dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                            activeDot={{ r: 6 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Scatter Plot (Pricing Analysis) */}
               {scatter && (
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
@@ -477,23 +580,193 @@ const Analytics: React.FC = () => {
               {/* Calendar Schedule */}
               <InteractiveCalendar />
 
-              {/* Delivery Size Histogram */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 className="font-bold text-lg text-slate-800 mb-4">Delivery Size Distribution</h3>
-                <div className="h-72">
+              {/* Advanced Operations Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+                {/* Delivery Fragmentation (PieChart) */}
+                {fragmentation && (
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-indigo-500" /> Delivery Fragmentation
+                      </h3>
+                      <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Trips per Order</span>
+                    </div>
+                    <div className="h-72 flex-grow">
+                      {fragmentation.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={fragmentation}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={100}
+                              paddingAngle={5}
+                              dataKey="value"
+                              nameKey="name"
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              labelLine={false}
+                            >
+                              {fragmentation.map((entry, index) => {
+                                const colors = ['#10b981', '#f59e0b', '#ef4444'];
+                                return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                              })}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                              formatter={(value: number) => [`${value} Orders`, 'Count']}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-slate-400 font-medium">
+                          No delivery data available yet
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-500 mt-2 text-center">Measures how many separate dispatch trips are required to fulfill a single order.</p>
+                  </div>
+                )}
+
+                {/* Revenue Held Hostage Tracker (ComposedChart) */}
+                {hostage && (
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-rose-500" /> Revenue Held Hostage
+                      </h3>
+                      <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Locked Cash Flow</span>
+                    </div>
+                    <div className="h-72 flex-grow">
+                      {hostage.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart data={hostage} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false} />
+
+                            {/* Left Y-Axis for Unpaid Units (Bars) */}
+                            <YAxis
+                              yAxisId="left"
+                              orientation="left"
+                              axisLine={false}
+                              tickLine={false}
+                              label={{ value: 'Unpaid Units', angle: -90, position: 'insideLeft', offset: -10 }}
+                            />
+
+                            {/* Right Y-Axis for Held Revenue (Line) */}
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              axisLine={false}
+                              tickLine={false}
+                              tickFormatter={formatYAxis}
+                              label={{ value: 'Unpaid Cash (₹)', angle: 90, position: 'insideRight', offset: -10 }}
+                            />
+
+                            <Tooltip
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                              formatter={(val: number, name: string) => {
+                                if (name === 'Held Revenue') return `₹${val.toLocaleString()}`;
+                                return `${val} Units`;
+                              }}
+                            />
+                            <Legend verticalAlign="top" height={36} />
+
+                            {/* Physical volume of items shipped but unpaid */}
+                            <Bar yAxisId="left" dataKey="unpaid_units" name="Unpaid Units" fill="#fca5a5" radius={[4, 4, 0, 0]} />
+
+                            {/* Actual Rupee value locked up */}
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="held_revenue"
+                              name="Held Revenue"
+                              stroke="#dc2626"
+                              strokeWidth={3}
+                              dot={{ r: 4, fill: '#dc2626', strokeWidth: 2, stroke: '#fff' }}
+                              activeDot={{ r: 6 }}
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-slate-400 font-medium">
+                          No pending partially-delivered orders. Cash flow is healthy!
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-500 mt-2 text-center">Tracks physical inventory delivered where the order remains unpaid/pending.</p>
+                  </div>
+                )}
+
+              </div>
+
+              {/* Advanced Delivery Size Histogram */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mt-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+                      <Box className="w-6 h-6 text-indigo-500" /> Delivery Size Distribution
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-1">Understanding average volumetric load per dispatch</p>
+                  </div>
+                  <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    Peak: {delDist?.sort((a, b) => b.count - a.count)[0]?.range || 'N/A'} units
+                  </div>
+                </div>
+
+                <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={delDist || []}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="range" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ fill: '#f1f5f9' }} />
-                      <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Deliveries" />
+                    <BarChart data={delDist || []} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                      <defs>
+                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#818cf8" stopOpacity={0.4} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis
+                        dataKey="range"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#64748b', fontSize: 13, fontWeight: 500 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc', opacity: 0.6 }}
+                        contentStyle={{
+                          borderRadius: '12px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(4px)'
+                        }}
+                        formatter={(value: number) => [
+                          <span className="font-bold text-indigo-600">{value} Deliveries</span>,
+                          <span className="text-slate-500">Frequency</span>
+                        ]}
+                        labelFormatter={(label) => <span className="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-2 block">Size: {label} units</span>}
+                      />
+                      {/* Advanced animated foreground bar with subtle grey background */}
+                      <Bar
+                        dataKey="count"
+                        fill="url(#colorCount)"
+                        radius={[6, 6, 6, 6]}
+                        barSize={40}
+                        background={{ fill: '#f1f5f9', radius: 6 }}
+                        animationDuration={1500}
+                        animationEasing="ease-out"
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">
-                  Most deliveries are in the <b>{delDist?.sort((a, b) => b.count - a.count)[0]?.range}</b> unit range.
-                </p>
               </div>
             </div>
           )}
