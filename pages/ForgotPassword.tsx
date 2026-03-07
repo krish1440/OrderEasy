@@ -23,9 +23,8 @@ const ForgotPassword = () => {
 
         try {
             // Pass the current window location as the redirect_to URL
-            // This will point to something like `http://localhost:3000/#/reset-password`
-            // Or `https://order-easy-blond.vercel.app/#/reset-password`
-            const redirectTo = `${window.location.origin}/#/reset-password`;
+            // Supabase drops tokens if a hash is present, so we use a non-hash path
+            const redirectTo = `${window.location.origin}/reset-password`;
 
             const response = await api.post<any>('/auth/forgot-password', {
                 email,

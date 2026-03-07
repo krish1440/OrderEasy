@@ -92,7 +92,18 @@ const AppRoutes = () => {
   );
 }
 
+import React, { useEffect } from 'react';
+
 function App() {
+  useEffect(() => {
+    // Supabase redirects to /reset-password#access_token=... when we omit the # from redirect_to
+    // We need to convert this to HashRouter format: /#/reset-password?access_token=...
+    if (window.location.pathname === '/reset-password' && window.location.hash.includes('access_token')) {
+      const tokenString = window.location.hash.replace('#', '?');
+      window.location.href = `${window.location.origin}/#/reset-password${tokenString}`;
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <AuthProvider>
