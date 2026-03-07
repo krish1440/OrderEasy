@@ -1,15 +1,15 @@
 import React, { useRef, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform, Variants } from 'framer-motion';
 import { ArrowRight, BarChart2, Truck, Database, ShieldCheck, Zap, PieChart, Check, X, Minus, Mail, Send } from 'lucide-react';
 import { SEO } from '../components/SEO';
 
-const fadeInUp = {
+const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
