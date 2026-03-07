@@ -63,6 +63,8 @@ const Exports: React.FC = () => {
     const [gstStart, setGstStart] = useState('');
     const [gstEnd, setGstEnd] = useState('');
 
+    const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+
     // Load customer list on mount
     useEffect(() => {
         api.get('/exports/customers/list')
@@ -261,13 +263,36 @@ const Exports: React.FC = () => {
 
                     {/* Customer Statement */}
                     <Card icon={User} iconBg="bg-rose-50 text-rose-600" title="Customer Statement" sub="Complete account statement for one client." badge="New">
-                        <div>
+                        <div className="relative z-50">
                             <Label>Select Customer</Label>
-                            <select value={customerName} onChange={e => setCustomerName(e.target.value)}
-                                className="w-full p-2 border border-slate-200 rounded-lg text-sm">
-                                <option value="">— Choose a customer —</option>
-                                {customerList.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                            <button
+                                onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
+                                className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white text-left flex justify-between items-center"
+                            >
+                                <span className={customerName ? "text-slate-900" : "text-slate-400"}>
+                                    {customerName || "— Choose a customer —"}
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-slate-400 transition-transform ${isCustomerDropdownOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
+                            </button>
+
+                            {isCustomerDropdownOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 animate-fade-in-up">
+                                    <div className="max-h-60 overflow-y-auto overscroll-contain">
+                                        {customerList.map(c => (
+                                            <button
+                                                key={c}
+                                                onClick={() => {
+                                                    setCustomerName(c);
+                                                    setIsCustomerDropdownOpen(false);
+                                                }}
+                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-brand-50 transition-colors ${customerName === c ? "bg-brand-50 text-brand-600 font-medium" : "text-slate-700"}`}
+                                            >
+                                                {c}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <p className="text-xs text-slate-400">Includes all orders, payments, and outstanding balance.</p>
                         <DualDownload
