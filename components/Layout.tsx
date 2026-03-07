@@ -158,7 +158,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 w-full bg-white border-b border-gray-100 z-30 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Logo className="w-8 h-8" />
+          <div className="flex-shrink-0 flex items-center justify-center">
+            <Logo className="w-8 h-8 text-brand-600" />
+          </div>
           <span className="font-bold text-slate-800">OrderEasy</span>
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
