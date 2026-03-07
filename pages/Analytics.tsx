@@ -71,6 +71,114 @@ import { SEO } from '../components/SEO';
 // Only cleared on browser refresh or when user explicitly clicks "Refresh".
 let aiSummaryModuleCache: string | null = null;
 
+// Components
+const KpiCard = ({ title, value, sub, icon: Icon, color }: any) => (
+  <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+    <div>
+      <p className="text-xs md:text-sm font-medium text-slate-500 mb-1">{title}</p>
+      <h3 className="text-xl md:text-2xl font-bold text-slate-900">{value}</h3>
+      {sub && <p className="text-[10px] md:text-xs text-slate-400 mt-1">{sub}</p>}
+    </div>
+    <div className={`p-2 md:p-3 rounded-lg ${color}`}>
+      <Icon className="w-4 h-4 md:w-5 md:h-5" />
+    </div>
+  </div>
+);
+
+// Calendar Component
+const InteractiveCalendar = ({ schedule }: { schedule: ExpectedScheduleData[] | null }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  if (!schedule) return null;
+
+  // Map data: date string -> quantity
+  const scheduleMap = new Map<string, number>();
+  schedule.forEach(s => scheduleMap.set(s.date, s.total_quantity));
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDayOfWeek = firstDay.getDay(); // 0=Sun
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Generate grid cells
+  const cells = [];
+  // Padding
+  for (let i = 0; i < startingDayOfWeek; i++) {
+    cells.push(<div key={`pad-${i}`} className="h-24 bg-slate-50 border border-slate-100/50"></div>);
+  }
+  // Days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const qty = scheduleMap.get(dateStr) || 0;
+
+    const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+
+    cells.push(
+      <div
+        key={d}
+        className={`h-24 border border-slate-100 p-2 relative group transition-all hover:bg-slate-50
+                  ${isToday ? 'bg-blue-50/50' : 'bg-white'}
+              `}
+      >
+        <div className={`text-xs font-semibold mb-1 ${isToday ? 'text-blue-600' : 'text-slate-500'}`}>{d}</div>
+        {qty > 0 && (
+          <div className="flex flex-col gap-1 mt-1">
+            <div className={`
+                          px-2 py-1 rounded text-xs font-bold text-center shadow-sm
+                          ${qty > 100 ? 'bg-indigo-100 text-indigo-700' :
+                qty > 50 ? 'bg-blue-100 text-blue-700' :
+                  'bg-sky-100 text-sky-700'}
+                      `}>
+              {qty} Units
+            </div>
+            <span className="text-[10px] text-slate-400 text-center">Pending</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center gap-4">
+          <h3 className="font-bold text-lg text-slate-800">Expected Delivery Schedule</h3>
+          <div className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
+            {currentDate.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={prevMonth} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button onClick={nextMonth} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Grid Header */}
+      <div className="grid grid-cols-7 bg-slate-100 border-b border-slate-200">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">{day}</div>
+        ))}
+      </div>
+
+      {/* Grid Body */}
+      <div className="grid grid-cols-7">
+        {cells}
+      </div>
+    </div>
+  );
+};
+
 const Analytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'revenue' | 'operations' | 'forecast' | 'customers'>('revenue');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -253,114 +361,6 @@ const Analytics: React.FC = () => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
     return value.toString();
-  };
-
-  // Components
-  const KpiCard = ({ title, value, sub, icon: Icon, color }: any) => (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
-      <div>
-        <p className="text-xs md:text-sm font-medium text-slate-500 mb-1">{title}</p>
-        <h3 className="text-xl md:text-2xl font-bold text-slate-900">{value}</h3>
-        {sub && <p className="text-[10px] md:text-xs text-slate-400 mt-1">{sub}</p>}
-      </div>
-      <div className={`p-2 md:p-3 rounded-lg ${color}`}>
-        <Icon className="w-4 h-4 md:w-5 md:h-5" />
-      </div>
-    </div>
-  );
-
-  // Calendar Component
-  const InteractiveCalendar = () => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-
-    if (!schedule) return null;
-
-    // Map data: date string -> quantity
-    const scheduleMap = new Map<string, number>();
-    schedule.forEach(s => scheduleMap.set(s.date, s.total_quantity));
-
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0=Sun
-
-    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
-
-    // Generate grid cells
-    const cells = [];
-    // Padding
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      cells.push(<div key={`pad-${i}`} className="h-24 bg-slate-50 border border-slate-100/50"></div>);
-    }
-    // Days
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const qty = scheduleMap.get(dateStr) || 0;
-
-      const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
-
-      cells.push(
-        <div
-          key={d}
-          className={`h-24 border border-slate-100 p-2 relative group transition-all hover:bg-slate-50
-                    ${isToday ? 'bg-blue-50/50' : 'bg-white'}
-                `}
-        >
-          <div className={`text-xs font-semibold mb-1 ${isToday ? 'text-blue-600' : 'text-slate-500'}`}>{d}</div>
-          {qty > 0 && (
-            <div className="flex flex-col gap-1 mt-1">
-              <div className={`
-                            px-2 py-1 rounded text-xs font-bold text-center shadow-sm
-                            ${qty > 100 ? 'bg-indigo-100 text-indigo-700' :
-                  qty > 50 ? 'bg-blue-100 text-blue-700' :
-                    'bg-sky-100 text-sky-700'}
-                        `}>
-                {qty} Units
-              </div>
-              <span className="text-[10px] text-slate-400 text-center">Pending</span>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-4">
-            <h3 className="font-bold text-lg text-slate-800">Expected Delivery Schedule</h3>
-            <div className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
-              {currentDate.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={prevMonth} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button onClick={nextMonth} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Grid Header */}
-        <div className="grid grid-cols-7 bg-slate-100 border-b border-slate-200">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">{day}</div>
-          ))}
-        </div>
-
-        {/* Grid Body */}
-        <div className="grid grid-cols-7">
-          {cells}
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -672,7 +672,7 @@ const Analytics: React.FC = () => {
               </div>
 
               {/* Calendar Schedule */}
-              <InteractiveCalendar />
+              <InteractiveCalendar schedule={schedule} />
 
               {/* Advanced Operations Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
@@ -807,7 +807,7 @@ const Analytics: React.FC = () => {
                   </div>
                   <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" />
-                    Peak: {delDist?.sort((a, b) => b.count - a.count)[0]?.range || 'N/A'} units
+                    Peak: {[...(delDist || [])].sort((a, b) => b.count - a.count)[0]?.range || 'N/A'} units
                   </div>
                 </div>
 
