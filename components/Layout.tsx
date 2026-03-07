@@ -23,6 +23,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [sidebarWidth, setSidebarWidth] = React.useState(256);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const newWidth = Math.max(200, Math.min(e.clientX, 600));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    } else {
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isDragging]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -46,8 +82,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      <style>{`
+        @media (min-width: 768px) {
+          .dynamic-sidebar { width: ${sidebarWidth}px !important; }
+          .dynamic-main { margin-left: ${sidebarWidth}px !important; }
+        }
+      `}</style>
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-100 fixed h-full z-20">
+      <aside className="hidden md:flex flex-col dynamic-sidebar bg-white border-r border-gray-100 fixed h-full z-20">
+        {/* Resize Handle */}
+        <div
+          className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-brand-500/50 active:bg-brand-500 z-50 transition-colors"
+          onMouseDown={handleMouseDown}
+        />
         <div className="p-6 flex items-center gap-3 animate-fade-in-up">
           <div className="transition-transform duration-300 hover:rotate-12 hover:scale-110">
             <Logo className="w-8 h-8" />
@@ -150,7 +197,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 mt-14 md:mt-0 overflow-x-hidden animate-fade-in-up delay-100">
+      <main className="flex-1 dynamic-main p-4 md:p-8 mt-14 md:mt-0 overflow-x-hidden animate-fade-in-up delay-100">
         {children}
       </main>
     </div>
