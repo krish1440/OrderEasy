@@ -2,6 +2,7 @@ import React, { useRef, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform, useSpring } from 'framer-motion';
 import { ArrowRight, BarChart2, Truck, Database, ShieldCheck, Zap, PieChart, Check, X, Minus, Mail, Send } from 'lucide-react';
+import { SEO } from '../components/SEO';
 
 const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -207,7 +208,11 @@ const Home: React.FC = () => {
 
     return (
         <div ref={targetRef} className="min-h-screen bg-[#05050A] text-slate-100 overflow-x-hidden selection:bg-brand-500 selection:text-white font-sans relative">
-
+            <SEO
+                title="Home"
+                description="Welcome to OrderEazy. One Platform to Manage Orders & Turn Data into Actionable Insights. AI business analyst, smart delivery, and instant sync."
+                keywords="ordereazy, order management system, inventory tracking, ai business analyst, smart delivery, instant data exports, supply chain"
+            />
             {/* Visual Analytics Background with Parallax */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <motion.div

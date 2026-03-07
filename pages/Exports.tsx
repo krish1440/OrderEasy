@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { FileDown, Calendar, Filter, AlertCircle, Truck, FileText, ReceiptText, ClipboardList, User } from 'lucide-react';
+import { SEO } from '../components/SEO';
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -161,6 +162,11 @@ const Exports: React.FC = () => {
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
+            <SEO
+                title="Data Exports"
+                description="Generate, schedule, and download advanced data exports and custom business reports from the OrderEazy platform."
+                keywords="export, csv export, pdf generation, scheduled reports, business report, data extraction, ordereazy export"
+            />
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-slate-900">Data Exports</h1>

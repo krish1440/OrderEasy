@@ -21,6 +21,7 @@ import {
 import { ArrowUpRight, CheckCircle, Clock, Package, DollarSign, Activity, Truck } from 'lucide-react';
 import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 import { BubbleChartData, RecentActivityData, FulfillmentGapData } from '../types';
+import { SEO } from '../components/SEO';
 
 const StatCard = ({ title, value, subtext, icon: Icon, color }: any) => (
   <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
@@ -97,6 +98,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      <SEO
+        title="Dashboard"
+        description="View real-time order statistics, revenue overview, and live delivery tracking on the OrderEazy dashboard."
+        keywords="dashboard, overview, statistics, real-time tracking, live delivery, revenue metrics, order eazy dashboard"
+      />
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
         <p className="text-slate-500">Welcome back, here's what's happening with your orders.</p>

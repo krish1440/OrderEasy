@@ -7,6 +7,7 @@ import { Plus, Download, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 
 import ConfirmModal from '../components/ConfirmModal';
 import TableSkeleton from '../components/skeletons/TableSkeleton';
 import { DynamicFieldsInput, CustomField } from '../components/DynamicFieldsInput';
+import { SEO } from '../components/SEO';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -210,6 +211,11 @@ const Orders: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="Order Management"
+        description="View, track, and manage all your orders. Monitor partial deliveries, generate invoices, and handle pending payments efficiently."
+        keywords="order management, delivery tracking, partial delivery, order processing, ordereazy orders, pending payments"
+      />
 
       {/* Alert Modal */}
       <ConfirmModal

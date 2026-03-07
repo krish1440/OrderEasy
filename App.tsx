@@ -1,5 +1,5 @@
-import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 
@@ -100,11 +100,13 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 

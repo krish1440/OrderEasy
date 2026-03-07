@@ -63,6 +63,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { SEO } from '../components/SEO';
 
 // ✅ Module-level cache — survives tab switches and page navigation.
 // Only cleared on browser refresh or when user explicitly clicks "Refresh".
@@ -361,6 +362,11 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="Analytics & Reports"
+        description="Comprehensive data-driven analytics for your order management system. Analyze revenue, delivery performance, and business insights."
+        keywords="analytics, business intelligence, data-driven, performance metrics, reports, revenue analysis, delivery performance"
+      />
       {/* Header & Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
