@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'reac
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
+import { Loader } from './components/Loader';
 
 // Pages
 import Home from './pages/Home';
@@ -23,14 +24,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-medium animate-pulse">Loading OrderEasy...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen message="Loading OrderEasy..." />;
   }
 
   if (!user) {
