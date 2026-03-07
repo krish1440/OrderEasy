@@ -60,8 +60,10 @@ import {
   Box,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { SEO } from '../components/SEO';
 
@@ -71,6 +73,7 @@ let aiSummaryModuleCache: string | null = null;
 
 const Analytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'revenue' | 'operations' | 'forecast' | 'customers'>('revenue');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Year State for Revenue Tab
   const [yearly, setYearly] = useState<YearlyRevenue | null>(null);
@@ -254,14 +257,14 @@ const Analytics: React.FC = () => {
 
   // Components
   const KpiCard = ({ title, value, sub, icon: Icon, color }: any) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+    <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
       <div>
-        <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-slate-900">{value}</h3>
-        {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+        <p className="text-xs md:text-sm font-medium text-slate-500 mb-1">{title}</p>
+        <h3 className="text-xl md:text-2xl font-bold text-slate-900">{value}</h3>
+        {sub && <p className="text-[10px] md:text-xs text-slate-400 mt-1">{sub}</p>}
       </div>
-      <div className={`p-3 rounded-lg ${color}`}>
-        <Icon className="w-5 h-5" />
+      <div className={`p-2 md:p-3 rounded-lg ${color}`}>
+        <Icon className="w-4 h-4 md:w-5 md:h-5" />
       </div>
     </div>
   );
@@ -373,7 +376,9 @@ const Analytics: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Analytics Dashboard</h1>
           <p className="text-slate-500">Business performance, delivery metrics, and AI forecasts.</p>
         </div>
-        <div className="flex bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto">
+
+        {/* Desktop Tabs */}
+        <div className="hidden md:flex bg-white p-1 rounded-lg border border-slate-200">
           {[
             { id: 'revenue', label: 'Revenue & Trends', icon: DollarSign },
             { id: 'operations', label: 'Operations & Delivery', icon: Truck },
@@ -391,8 +396,91 @@ const Analytics: React.FC = () => {
           ))}
         </div>
 
-        {/* Export Button */}
+        {/* Advanced Interactive Mobile Dropdown */}
+        <div className="w-full md:hidden relative z-50">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-brand-50 rounded-lg text-brand-600">
+                {activeTab === 'revenue' && <DollarSign className="w-5 h-5" />}
+                {activeTab === 'operations' && <Truck className="w-5 h-5" />}
+                {activeTab === 'forecast' && <Sparkles className="w-5 h-5" />}
+                {activeTab === 'customers' && <Users className="w-5 h-5" />}
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Current View</p>
+                <p className="text-sm font-bold text-slate-800">
+                  {activeTab === 'revenue' && 'Revenue & Trends'}
+                  {activeTab === 'operations' && 'Operations & Delivery'}
+                  {activeTab === 'forecast' && 'Forecast & AI'}
+                  {activeTab === 'customers' && 'Customer Insights'}
+                </p>
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <ChevronDown className="w-5 h-5 text-slate-400" />
+            </motion.div>
+          </button>
 
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <>
+                {/* Backdrop to close when clicking outside */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm"
+                />
+
+                {/* Floating Menu List */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="absolute top-[110%] left-0 w-full bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50 p-2"
+                >
+                  {[
+                    { id: 'revenue', label: 'Revenue & Trends', icon: DollarSign, desc: 'Financials, MoM, Pricing' },
+                    { id: 'operations', label: 'Operations & Delivery', icon: Truck, desc: 'Deliveries, Fragmentation' },
+                    { id: 'forecast', label: 'Forecast & AI', icon: Sparkles, desc: 'Growth Predictions' },
+                    { id: 'customers', label: 'Customer Insights', icon: Users, desc: 'RFM, Churn, Retention' }
+                  ].map((tab, i) => (
+                    <motion.button
+                      key={tab.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => {
+                        setActiveTab(tab.id as any);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${activeTab === tab.id ? 'bg-brand-50 border border-brand-100' : 'hover:bg-slate-50 border border-transparent'}`}
+                    >
+                      <div className={`p-2 rounded-lg ${activeTab === tab.id ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                        <tab.icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-bold ${activeTab === tab.id ? 'text-brand-900' : 'text-slate-700'}`}>{tab.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{tab.desc}</p>
+                      </div>
+                      {activeTab === tab.id && (
+                        <motion.div layoutId="active-indicator" className="ml-auto w-2 h-2 rounded-full bg-brand-500" />
+                      )}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {loading ? (
