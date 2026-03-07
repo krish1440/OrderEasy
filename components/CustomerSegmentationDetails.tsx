@@ -22,10 +22,10 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
 
   const filteredSegments = useMemo(() => {
     if (!searchQuery.trim()) return segments;
-    
+
     const query = searchQuery.toLowerCase();
     const result: { [key: string]: RFMSegmentData } = {};
-    
+
     Object.entries(segments).forEach(([key, data]) => {
       const filteredCustomers = data.customers.filter(c => c.toLowerCase().includes(query));
       if (filteredCustomers.length > 0 || key.toLowerCase().includes(query)) {
@@ -35,7 +35,7 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
         };
       }
     });
-    
+
     return result;
   }, [segments, searchQuery]);
 
@@ -48,9 +48,9 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search customers..." 
+          <input
+            type="text"
+            placeholder="Search customers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all w-full md:w-64"
@@ -70,8 +70,8 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
             const Icon = config.icon;
 
             return (
-              <div 
-                key={key} 
+              <div
+                key={key}
                 className={`border rounded-xl overflow-hidden transition-all duration-200 ${isExpanded ? config.border : 'border-slate-100'}`}
               >
                 <button
@@ -84,7 +84,7 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
                     </div>
                     <div className="text-left w-full max-w-[200px] md:max-w-md">
                       <h4 className="font-semibold text-slate-800">{key}</h4>
-                      <p className="text-xs text-slate-500 line-clamp-1 truncate">{data.business_explanation}</p>
+                      <p className="text-xs text-slate-500 mt-1">{data.business_explanation}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -109,8 +109,8 @@ export const CustomerSegmentationDetails: React.FC<Props> = ({ segments }) => {
                       <div className="p-4 bg-slate-50 border-t border-slate-100">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                           {data.customers.map((cust, i) => (
-                            <div 
-                              key={i} 
+                            <div
+                              key={i}
                               className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-shadow hover:border-slate-200 group"
                             >
                               <div className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></div>
