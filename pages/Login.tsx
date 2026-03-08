@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, ArrowRight, Lock, User, Building2, AlertCircle, Mail, KeyRound, Home as HomeIcon } from 'lucide-react';
+import { ArrowRight, Lock, User, Building2, AlertCircle, Mail, KeyRound, Home as HomeIcon } from 'lucide-react';
+import { Logo } from '../components/Logo';
 
 const Login: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -112,8 +113,8 @@ const Login: React.FC = () => {
           </button>
 
           <div className="relative z-10">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-6">
-              <TrendingUp className="w-7 h-7 text-white" />
+            <div className="w-12 h-12 bg-white/90 shadow-lg backdrop-blur-sm rounded-xl flex items-center justify-center mb-6">
+              <Logo className="w-7 h-7" />
             </div>
             <h1 className="text-4xl font-bold mb-4">OrderEasy Analytics</h1>
             <p className="text-brand-100 text-lg leading-relaxed">
