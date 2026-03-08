@@ -96,10 +96,12 @@ import React, { useEffect } from 'react';
 
 function App() {
   useEffect(() => {
-    // Supabase redirects to /reset-password#access_token=... when we omit the # from redirect_to
-    // We need to convert this to HashRouter format: /#/reset-password?access_token=...
-    if (window.location.pathname === '/reset-password' && window.location.hash.includes('access_token')) {
-      const tokenString = window.location.hash.replace('#', '?');
+    // Supabase appends #access_token=...&type=recovery to the redirect_to URL.
+    // We send them to the root URL (/) so Vercel SPA routing doesn't 404.
+    // We intercept that raw token string here, and pipe it firmly into the React HashRouter format.
+    const hash = window.location.hash;
+    if (hash.includes('access_token') && hash.includes('type=recovery')) {
+      const tokenString = hash.replace('#', '?');
       window.location.href = `${window.location.origin}/#/reset-password${tokenString}`;
     }
   }, []);

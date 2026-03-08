@@ -22,9 +22,10 @@ const ForgotPassword = () => {
         setMessage('');
 
         try {
-            // Pass the current window location as the redirect_to URL
-            // Supabase drops tokens if a hash is present, so we use a non-hash path
-            const redirectTo = `${window.location.origin}/reset-password`;
+            // Pass the root origin as the redirect_to URL.
+            // Using /reset-password causes a 404 on Vercel (SPA routing without vercel.json).
+            // Supabase append tokens as #access_token=..., which we will intercept in App.tsx.
+            const redirectTo = `${window.location.origin}/`;
 
             const response = await api.post<any>('/auth/forgot-password', {
                 email,
