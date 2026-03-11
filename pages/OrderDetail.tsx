@@ -36,6 +36,36 @@ const OrderDetail: React.FC = () => {
   });
   const [deliveryCustomFields, setDeliveryCustomFields] = useState<CustomField[]>([]);
 
+  const normalizeNumericInput = (value: string) => value.replace(/^0+(?=\d)/, '');
+
+  const clearIfZero = (field: string, isDelivery = false) => {
+    if (isDelivery) {
+      const val = (newDelivery as any)[field];
+      if (val === 0) {
+        setNewDelivery({ ...newDelivery, [field]: '' } as any);
+      }
+    } else {
+      const val = (editFormData as any)[field];
+      if (val === 0) {
+        setEditFormData({ ...editFormData, [field]: '' });
+      }
+    }
+  };
+
+  const resetIfEmpty = (field: string, isDelivery = false) => {
+    if (isDelivery) {
+      const val = (newDelivery as any)[field];
+      if (val === '') {
+        setNewDelivery({ ...newDelivery, [field]: 0 } as any);
+      }
+    } else {
+      const val = (editFormData as any)[field];
+      if (val === '') {
+        setEditFormData({ ...editFormData, [field]: 0 });
+      }
+    }
+  };
+
   // Confirm Modal State
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -509,13 +539,27 @@ const OrderDetail: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500">Quantity</label>
-                  <input required type="number" className="w-full p-2 border border-slate-200 rounded-md bg-white text-sm"
-                    value={newDelivery.delivery_quantity} onChange={e => setNewDelivery({ ...newDelivery, delivery_quantity: Number(e.target.value) })} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500">Amount Received (₹)</label>
-                  <input required type="number" className="w-full p-2 border border-slate-200 rounded-md bg-white text-sm"
-                    value={newDelivery.total_amount_received} onChange={e => setNewDelivery({ ...newDelivery, total_amount_received: Number(e.target.value) })} />
+                    <input
+                      required
+                      type="number"
+                      className="w-full p-2 border border-slate-200 rounded-md bg-white text-sm"
+                      value={newDelivery.delivery_quantity}
+                      onFocus={() => clearIfZero('delivery_quantity', true)}
+                      onBlur={() => resetIfEmpty('delivery_quantity', true)}
+                      onChange={e => setNewDelivery({ ...newDelivery, delivery_quantity: Number(normalizeNumericInput(e.target.value)) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500">Amount Received (₹)</label>
+                    <input
+                      required
+                      type="number"
+                      className="w-full p-2 border border-slate-200 rounded-md bg-white text-sm"
+                      value={newDelivery.total_amount_received}
+                      onFocus={() => clearIfZero('total_amount_received', true)}
+                      onBlur={() => resetIfEmpty('total_amount_received', true)}
+                      onChange={e => setNewDelivery({ ...newDelivery, total_amount_received: Number(normalizeNumericInput(e.target.value)) })}
+                    />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500">Proof (Optional)</label>
@@ -663,23 +707,51 @@ const OrderDetail: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Quantity</label>
-                  <input required type="number" className="w-full border border-slate-200 p-2 rounded-lg"
-                    value={editFormData.quantity} onChange={e => setEditFormData({ ...editFormData, quantity: e.target.value })} />
+                  <input
+                    required
+                    type="number"
+                    className="w-full border border-slate-200 p-2 rounded-lg"
+                    value={editFormData.quantity}
+                    onFocus={() => clearIfZero('quantity')}
+                    onBlur={() => resetIfEmpty('quantity')}
+                    onChange={e => setEditFormData({ ...editFormData, quantity: normalizeNumericInput(e.target.value) })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Unit Price (₹)</label>
-                  <input required type="number" className="w-full border border-slate-200 p-2 rounded-lg"
-                    value={editFormData.price} onChange={e => setEditFormData({ ...editFormData, price: e.target.value })} />
+                  <input
+                    required
+                    type="number"
+                    className="w-full border border-slate-200 p-2 rounded-lg"
+                    value={editFormData.price}
+                    onFocus={() => clearIfZero('price')}
+                    onBlur={() => resetIfEmpty('price')}
+                    onChange={e => setEditFormData({ ...editFormData, price: normalizeNumericInput(e.target.value) })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">GST %</label>
-                  <input required type="number" className="w-full border border-slate-200 p-2 rounded-lg"
-                    value={editFormData.gst} onChange={e => setEditFormData({ ...editFormData, gst: e.target.value })} />
+                  <input
+                    required
+                    type="number"
+                    className="w-full border border-slate-200 p-2 rounded-lg"
+                    value={editFormData.gst}
+                    onFocus={() => clearIfZero('gst')}
+                    onBlur={() => resetIfEmpty('gst')}
+                    onChange={e => setEditFormData({ ...editFormData, gst: normalizeNumericInput(e.target.value) })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Advance Payment (₹)</label>
-                  <input required type="number" className="w-full border border-slate-200 p-2 rounded-lg"
-                    value={editFormData.advance_payment} onChange={e => setEditFormData({ ...editFormData, advance_payment: e.target.value })} />
+                  <input
+                    required
+                    type="number"
+                    className="w-full border border-slate-200 p-2 rounded-lg"
+                    value={editFormData.advance_payment}
+                    onFocus={() => clearIfZero('advance_payment')}
+                    onBlur={() => resetIfEmpty('advance_payment')}
+                    onChange={e => setEditFormData({ ...editFormData, advance_payment: normalizeNumericInput(e.target.value) })}
+                  />
                 </div>
 
                 {/* Dynamic Fields */}

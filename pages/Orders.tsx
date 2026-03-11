@@ -44,6 +44,20 @@ const Orders: React.FC = () => {
     description: '',
     url: ''
   });
+
+  const normalizeNumericInput = (value: string) => value.replace(/^0+(?=\d)/, '');
+
+  const clearIfZero = (key: keyof typeof formData) => {
+    if (formData[key] === 0) {
+      setFormData({ ...formData, [key]: '' });
+    }
+  };
+
+  const resetIfEmpty = (key: keyof typeof formData) => {
+    if (formData[key] === '') {
+      setFormData({ ...formData, [key]: 0 });
+    }
+  };
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
 
   const fetchOrders = async () => {
@@ -432,19 +446,51 @@ const Orders: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Quantity</label>
-                <input required type="number" className="w-full border p-2 rounded-lg" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} />
+                <input
+                  required
+                  type="number"
+                  className="w-full border p-2 rounded-lg"
+                  value={formData.quantity}
+                  onFocus={() => clearIfZero('quantity')}
+                  onBlur={() => resetIfEmpty('quantity')}
+                  onChange={e => setFormData({ ...formData, quantity: Number(normalizeNumericInput(e.target.value)) })}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Price (per unit)</label>
-                <input required type="number" className="w-full border p-2 rounded-lg" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
+                <input
+                  required
+                  type="number"
+                  className="w-full border p-2 rounded-lg"
+                  value={formData.price}
+                  onFocus={() => clearIfZero('price')}
+                  onBlur={() => resetIfEmpty('price')}
+                  onChange={e => setFormData({ ...formData, price: Number(normalizeNumericInput(e.target.value)) })}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">GST (%)</label>
-                <input required type="number" className="w-full border p-2 rounded-lg" value={formData.gst} onChange={e => setFormData({ ...formData, gst: Number(e.target.value) })} />
+                <input
+                  required
+                  type="number"
+                  className="w-full border p-2 rounded-lg"
+                  value={formData.gst}
+                  onFocus={() => clearIfZero('gst')}
+                  onBlur={() => resetIfEmpty('gst')}
+                  onChange={e => setFormData({ ...formData, gst: Number(normalizeNumericInput(e.target.value)) })}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Advance Payment</label>
-                <input required type="number" className="w-full border p-2 rounded-lg" value={formData.advance_payment} onChange={e => setFormData({ ...formData, advance_payment: Number(e.target.value) })} />
+                <input
+                  required
+                  type="number"
+                  className="w-full border p-2 rounded-lg"
+                  value={formData.advance_payment}
+                  onFocus={() => clearIfZero('advance_payment')}
+                  onBlur={() => resetIfEmpty('advance_payment')}
+                  onChange={e => setFormData({ ...formData, advance_payment: Number(normalizeNumericInput(e.target.value)) })}
+                />
               </div>
 
               <div className="md:col-span-2 pt-2 border-t border-slate-100 mt-2">
