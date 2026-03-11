@@ -76,6 +76,8 @@ export interface RecentActivityData {
   receiver: string;
   amount: number;
   quantity: number;
+  delivered_quantity: number;
+  pending_amount: number;
   status: string;
   payment_status: string;
   date: string;

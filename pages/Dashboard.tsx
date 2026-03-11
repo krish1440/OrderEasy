@@ -267,33 +267,50 @@ const Dashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col max-h-[460px]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-brand-500" /> Recent Activity
+              <Activity className="w-5 h-5 text-brand-500" /> Order Activity Feed
             </h2>
           </div>
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
-            {activityFeed.map((activity, idx) => (
-              <div key={`${activity.id}-${idx}`} className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors group">
-                {/* Status Indicator Dot */}
-                <div className="mt-1.5 relative flex items-center justify-center">
-                  <div className={`w-2.5 h-2.5 rounded-full ${activity.status === 'Completed' ? 'bg-emerald-500 group-hover:animate-ping' : 'bg-amber-500'}`}></div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <p className="text-sm font-semibold text-slate-800 truncate pr-2">{activity.product}</p>
-                    <p className="text-sm font-bold text-slate-900 flex-shrink-0">₹{activity.amount.toLocaleString()}</p>
+            {activityFeed.map((activity, idx) => {
+              const isCompleted = activity.status === 'Completed';
+              const pendingAmount = Math.max(0, activity.pending_amount ?? 0);
+              const pendingUnits = Math.max(0, activity.quantity - (activity.delivered_quantity ?? 0));
+              const displayAmount = isCompleted ? activity.amount : pendingAmount;
+
+              return (
+                <div key={`${activity.id}-${idx}`} className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors group">
+                  {/* Status Indicator Dot */}
+                  <div className="mt-1.5 relative flex items-center justify-center">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isCompleted ? 'bg-emerald-500 group-hover:animate-ping' : 'bg-amber-500'}`}></div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-slate-500 truncate">{activity.receiver} • {activity.quantity} units</p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activity.payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
-                      activity.payment_status === 'Partial' ? 'bg-amber-100 text-amber-700' :
-                        'bg-rose-100 text-rose-700'
-                      }`}>
-                      {activity.payment_status}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <p className="text-sm font-semibold text-slate-800 truncate pr-2">{activity.product}</p>
+                      <p className="text-sm font-bold text-slate-900 flex-shrink-0">₹{displayAmount.toLocaleString()}</p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-slate-500 truncate">{activity.receiver} • {activity.quantity} units</p>
+                      {(() => {
+                        const label = isCompleted
+                          ? 'Completed'
+                          : `Pending ${pendingUnits} units`;
+
+                        const badgeStyle = isCompleted
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-amber-100 text-amber-700';
+
+                        return (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeStyle}`}>
+                            {label}
+                          </span>
+                        );
+                      })()}
+
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {activityFeed.length === 0 && (
               <div className="text-center py-10 text-slate-400">
                 <p>No recent activity found.</p>
