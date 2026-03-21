@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Lock, User, Building2, AlertCircle, Mail, KeyRound, Home as HomeIcon } from 'lucide-react';
+import { ArrowRight, Lock, User, Building2, AlertCircle, Mail, KeyRound, Shield, Home as HomeIcon } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
 const Login: React.FC = () => {
@@ -283,6 +283,15 @@ const Login: React.FC = () => {
                 {isLogin ? 'Sign up' : 'Login'}
               </button>
             </p>
+            <div className="mt-8 text-center">
+              <Link 
+                to="/privacy" 
+                className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-brand-500 transition-all hover:scale-105 active:scale-95 py-1 px-3 rounded-full hover:bg-brand-500/10"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Privacy Policy</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

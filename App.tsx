@@ -16,6 +16,7 @@ import Exports from './pages/Exports';
 import Admin from './pages/Admin';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Privacy from './pages/Privacy';
 
 // ... (previous imports)
 
@@ -43,6 +44,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy" element={<Privacy />} />
 
       {/* Protected Dashboard */}
       <Route path="/dashboard" element={

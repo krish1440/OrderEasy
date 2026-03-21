@@ -546,26 +546,16 @@ const Home: React.FC = () => {
                                 variants={fadeInUp}
                                 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight drop-shadow-2xl"
                             >
-                                One Platform to Manage Orders & <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-indigo-400 to-purple-400 animate-gradient-x">
-                                    Turn Data into Actionable Insights
+                                    Turn every order into insight, every delivery into confidence.
                                 </span>
                             </motion.h1>
 
                             <motion.p
                                 variants={fadeInUp}
-                                className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed drop-shadow-lg"
+                                className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed drop-shadow-lg"
                             >
                                 Track orders, manage partial deliveries, upload bills, and analyze everything with interactive charts to turn your data into clear business insights.
-                            </motion.p>
-
-                            <motion.p
-                                variants={fadeInUp}
-                                className="text-xl md:text-2xl font-semibold max-w-2xl mx-auto leading-relaxed"
-                            >
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-indigo-400 to-purple-400">
-                                    Turn every order into insight, every delivery into confidence.
-                                </span>
                             </motion.p>
 
                             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -732,7 +722,7 @@ const Home: React.FC = () => {
                         <span className="font-semibold text-white">OrderEasy</span>
                     </div>
                     <p className="text-slate-500 text-sm">
-                        © {new Date().getFullYear()} OrderEasy Analytics.
+                        © {new Date().getFullYear()} OrderEasy Analytics. • <a href="/#/privacy" className="hover:text-brand-400 transition-colors">Privacy Policy</a>
                     </p>
                 </div>
             </footer>
