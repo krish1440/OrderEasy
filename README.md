@@ -10,8 +10,9 @@ Welcome to the visual heart of **OrderEazy**. A premium management dashboard bui
 ---
 
 ## 🌐 Live Deployment
-Explore the interactive interface live on Vercel:
+Explore the interactive interface live on Vercel:,
 🔗 **[OrderEazy Live App](https://order-easy-blond.vercel.app/)**
+🔗 **[OrderEazy Backend](https://ordereasy-backend-fwl1.onrender.com/)**
 
 ---
 
