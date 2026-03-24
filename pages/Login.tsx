@@ -129,7 +129,7 @@ const Login: React.FC = () => {
                   <div key={i} className="w-8 h-8 rounded-full bg-brand-400 border-2 border-brand-600"></div>
                 ))}
               </div>
-              <p>Powered by Advanced Analytics</p>
+              <p>Strategic Decision Intelligence</p>
             </div>
           </div>
 
