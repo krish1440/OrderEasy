@@ -17,31 +17,35 @@ const ResetPassword = () => {
     const location = useLocation();
 
     useEffect(() => {
-        // Supabase redirects to /#/reset-password#access_token=...&type=recovery
-        // The location.hash will contain everything after the first '#'
-        // For HashRouter, that includes /reset-password#access_token=...
+        // Extract token/code from URL (handles Search params, Hash params, PKCE code, access_token, and token_hash)
+        const getParam = (paramName: string): string | null => {
+            // 1. Check window.location.search (?code=... or ?access_token=...)
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get(paramName)) return searchParams.get(paramName);
 
-        const rawHash = window.location.hash;
-
-        // We look for access_token anywhere in the hash string
-        if (rawHash.includes('access_token')) {
-            // Split by '#' and find the part with access_token
-            const parts = rawHash.split('#');
-            const tokenPart = parts.find(p => p.includes('access_token'));
-
-            if (tokenPart) {
-                // Parse params from the part containing the token
-                const params = new URLSearchParams(tokenPart.includes('?') ? tokenPart.split('?')[1] : tokenPart);
-                const token = params.get('access_token');
-                if (token) {
-                    setAccessToken(token);
-                    return;
+            // 2. Check window.location.hash (/#/reset-password?code=... or #access_token=...)
+            const rawHash = window.location.hash;
+            if (rawHash.includes(paramName)) {
+                const parts = rawHash.split('#');
+                for (const part of parts) {
+                    const queryIdx = part.indexOf('?');
+                    const queryString = queryIdx !== -1 ? part.substring(queryIdx + 1) : part;
+                    const params = new URLSearchParams(queryString);
+                    if (params.get(paramName)) {
+                        return params.get(paramName);
+                    }
                 }
             }
-        }
+            return null;
+        };
 
-        // Check if token is already set, if not, show error
-        if (!accessToken) {
+        const token = getParam('access_token') || getParam('code') || getParam('token_hash') || getParam('token');
+
+        if (token) {
+            setAccessToken(token);
+            setStatus('idle');
+            setMessage('');
+        } else {
             setStatus('error');
             setMessage('Invalid or missing secure reset token. Please request a new password reset link.');
         }
